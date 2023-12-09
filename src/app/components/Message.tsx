@@ -4,7 +4,7 @@ import Markdown from 'markdown-to-jsx'
 
 import { UserOutlined, RobotOutlined } from '@ant-design/icons';
 import {MessageType} from '../page';
-import { signTypedData, sendTransaction } from '@wagmi/core'
+import { signTypedData, sendTransaction, waitForTransaction } from '@wagmi/core'
 
 const Message = (props: any) => {
     const message: MessageType = props.message;
@@ -32,9 +32,17 @@ const Message = (props: any) => {
             })
 
         }
+
+        if (actionObject.name === 'get_approval_for_token') {
+            const { hash } = await sendTransaction(actionObject?.args?.calldata);
+            const data = await waitForTransaction({ hash });
+            wakuInstance.sendActionResopnse({
+                name: actionObject.response_event,
+                output: {success: true, message: "approval granted" }
+            })
+        }
     }
 
-    console.log(message)
     return (
         <Card style={{boxShadow: 'none', borderRadius:'4px'}}    bordered={false}>
             <Card.Grid style={{width: '25%', border: 'none', boxShadow: 'none'}}>

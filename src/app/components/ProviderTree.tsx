@@ -10,10 +10,10 @@ const config = createConfig(
       walletConnectProjectId: "c9ce743ec1ae0a3a3c13ecf30b36b59c",
   
       // Required
-      appName: "ethIndia2022",
+      appName: "ethIndia2023",
   
       // Optional
-      appDescription: "Your App Description",
+      appDescription: "Mr fox is a helpful ai assistant",
       appUrl: "https://family.co", // your app's url
       appIcon: "https://family.co/logo.png", // your app's icon, no bigger than 1024x1024px (max. 1MB)
     }),
