@@ -63,11 +63,13 @@ export default function Home() {
     // initialise waku node
     await waitForNodeInitialisation();
 
+    const contentTopic = `local-fox-${Math.floor(Math.random() * 5000)}`;
+
     // register topic with ai bot
-    const registerTopicResponse = await registerTopic("local-fox");
+    const registerTopicResponse = await registerTopic(contentTopic);
 
     // create waku-service instance
-    wakuService = new WakuService("local-fox");
+    wakuService = new WakuService(contentTopic);
     await wakuService.startWatchingForNewMessages();
 
     setWakuInstance(wakuService);
@@ -120,6 +122,10 @@ export default function Home() {
   useEffect(() => {
     console.log("i was called");
     init();
+
+    return () => {
+      wakuInstance?.sendActionResopnse({ name: "delete-thread", output: "" });
+    };
   }, []);
 
   const handleClick = async () => {
