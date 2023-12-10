@@ -18,3 +18,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 
 [Backend for Mr Fox](https://github.com/arvindkalra/mr-fox-backend)
+
+Powered by:
+
+1. 1inch fusion SDK
+2. Waku Protocol
