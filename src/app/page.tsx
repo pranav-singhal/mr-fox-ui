@@ -4,17 +4,12 @@ import { useEffect, useState, useRef } from "react";
 
 import { Input, Space } from "antd";
 import styles from "./page.module.css";
-import { registerTopic } from "./services/ApiService";
-import WakuService, {
-  MESSAGE_RECEIVED,
-  waitForNodeInitialisation,
-} from "./services/WakuService";
 import { Card, List } from "../../node_modules/antd/es/index";
 import Message from "./components/Message.tsx";
 import ProviderTree from "./components/ProviderTree.tsx";
+import WebsocketService, { MESSAGE_RECEIVED } from "./services/WebsocketService";
 
 const { Search } = Input;
-let wakuService: WakuService;
 
 const INITIAL_MESSAGE = `Welcome to the world of **Web3** assistance! I'm **Mr. Fox**, here to help you with a variety of on-chain transactions. Here's a succinct introduction to what I can do for you:
 
@@ -57,24 +52,18 @@ export default function Home() {
   const [inputMessage, setInputMessage] = useState("");
   const [isRespondingToPrompt, setIsRespondingToPrompt] =
     useState<boolean>(false);
-  const [wakuInstance, setWakuInstance] = useState<WakuService>();
+  const [websocketInstance, setWebsocketInstance] = useState<WebsocketService>();
 
   const init = async () => {
-    // initialise waku node
-    await waitForNodeInitialisation();
-
-    const contentTopic = `local-fox-${Math.floor(Math.random() * 5000)}`;
-
-    // register topic with ai bot
-    const registerTopicResponse = await registerTopic(contentTopic);
 
     // create waku-service instance
-    wakuService = new WakuService(contentTopic);
-    await wakuService.startWatchingForNewMessages();
+    let websocketService: WebsocketService = new WebsocketService();
+    
+    await websocketService.startWatchingForNewMessages();
 
-    setWakuInstance(wakuService);
+    setWebsocketInstance(websocketService);
 
-    wakuService.on(MESSAGE_RECEIVED, (event) => {
+    websocketService.on(MESSAGE_RECEIVED, (event) => {
       setIsRespondingToPrompt(false);
       console.log("message from server: ", event, messages);
 
@@ -124,7 +113,7 @@ export default function Home() {
     init();
 
     return () => {
-      wakuInstance?.sendActionResopnse({ name: "delete-thread", output: "" });
+      // websocketInstance?.sendActionResopnse({ name: "delete-thread", output: "" });
     };
   }, []);
 
@@ -151,7 +140,7 @@ export default function Home() {
         ...messages,
         { id: Date.now(), type: "user", createdAt: Date.now(), prompt },
       ]);
-      await wakuService.pushMessage(prompt);
+      await websocketInstance?.pushMessage(prompt);
     }
   };
 
@@ -170,7 +159,7 @@ export default function Home() {
             {messages.map((_message: MessageType) => {
               return (
                 <Message
-                  wakuInstance={wakuInstance}
+                  wakuInstance={websocketInstance}
                   message={_message}
                   key={_message.id}
                   setIsRespondingToPrompt={setIsRespondingToPrompt}
@@ -179,7 +168,7 @@ export default function Home() {
             })}
             {isRespondingToPrompt && (
               <Message
-                wakuInstance={wakuInstance}
+                wakuInstance={websocketInstance}
                 loading
                 message={{ type: "fox" }}
               />

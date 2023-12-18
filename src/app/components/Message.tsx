@@ -175,7 +175,7 @@ const Message = (props: any) => {
             shape="square"
             size={90}
             src={
-              <img src="https://github-production-user-asset-6210df.s3.amazonaws.com/29686907/289285734-1611f219-ecba-4fa6-8407-12681a36e14b.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20231209%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20231209T160529Z&X-Amz-Expires=300&X-Amz-Signature=4af26261b5c12539cebf6af74c0fcf58f3bee468d09cc85f2fc8de69d5667e4c&X-Amz-SignedHeaders=host&actor_id=29686907&key_id=0&repo_id=681226135" />
+              <img src="/mr-fox.jpeg" />
             }
           />
         )}
