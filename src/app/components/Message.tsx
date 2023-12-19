@@ -159,6 +159,7 @@ const Message = (props: any) => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          boxShadow: 'unset'
         }}
         hoverable={false}
       >

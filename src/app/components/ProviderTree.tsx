@@ -1,4 +1,3 @@
-
 import { ConnectKitProvider, ConnectKitButton, getDefaultConfig } from "connectkit";
 import { WagmiConfig, createConfig, useWalletClient } from "wagmi";
 
