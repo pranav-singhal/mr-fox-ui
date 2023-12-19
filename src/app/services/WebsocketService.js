@@ -29,7 +29,7 @@ export default class WebsocketService extends EventEmitter {
   constructor() {
     super();
 
-    this.ws = new WebSocket("ws://localhost:8081");
+    this.ws = new WebSocket("ws://mr-fox-backend.ap-south-1.elasticbeanstalk.com");
   }
 
   async startWatchingForNewMessages() {
