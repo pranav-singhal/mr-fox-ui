@@ -1,5 +1,5 @@
-import { ConnectKitProvider, ConnectKitButton, getDefaultConfig } from "connectkit";
-import { WagmiConfig, createConfig, useWalletClient } from "wagmi";
+import { ConnectKitProvider, getDefaultConfig } from "connectkit";
+import { WagmiConfig, createConfig } from "wagmi";
 
 
 const config = createConfig(
@@ -18,7 +18,9 @@ const config = createConfig(
     }),
   );
 
-const ProviderTree = ({children}) => {
+const ProviderTree = (props: any) => {
+
+  const children: any = props.children;
 
     return (
         <WagmiConfig config={config}>

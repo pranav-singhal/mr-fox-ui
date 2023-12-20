@@ -5,8 +5,8 @@ import { useEffect, useState, useRef } from "react";
 import { Input, Space } from "antd";
 import styles from "./page.module.css";
 import { Card, List } from "../../node_modules/antd/es/index";
-import Message from "./components/Message.tsx";
-import ProviderTree from "./components/ProviderTree.tsx";
+import Message from "./components/Message";
+import ProviderTree from "./components/ProviderTree";
 import WebsocketService, { MESSAGE_RECEIVED } from "./services/WebsocketService";
 
 const { Search } = Input;
