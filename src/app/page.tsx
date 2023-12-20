@@ -109,7 +109,6 @@ export default function Home() {
     ];
   };
   useEffect(() => {
-    console.log("i was called");
     init();
 
     return () => {
