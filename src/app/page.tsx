@@ -1,15 +1,13 @@
 "use client";
-import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 
-import { Input, Space } from "antd";
-import styles from "./page.module.css";
-import { Card, List } from "../../node_modules/antd/es/index";
 import Message from "./components/Message";
 import ProviderTree from "./components/ProviderTree";
-import WebsocketService, { MESSAGE_RECEIVED } from "./services/WebsocketService";
-
-const { Search } = Input;
+import WebsocketService, {
+  MESSAGE_RECEIVED,
+} from "./services/WebsocketService";
+import LoadingIndicator from "./components/LoadingIndicator";
+import classnames from "classnames";
 
 const INITIAL_MESSAGE = `Welcome to the world of **Web3** assistance! I'm **Mr. Fox**, here to help you with a variety of on-chain transactions. Here's a succinct introduction to what I can do for you:
 
@@ -52,13 +50,25 @@ export default function Home() {
   const [inputMessage, setInputMessage] = useState("");
   const [isRespondingToPrompt, setIsRespondingToPrompt] =
     useState<boolean>(false);
-  const [websocketInstance, setWebsocketInstance] = useState<WebsocketService>();
+  const [websocketInstance, setWebsocketInstance] =
+    useState<WebsocketService>();
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const init = async () => {
-
     // create waku-service instance
     let websocketService: WebsocketService = new WebsocketService();
-    
+
     await websocketService.startWatchingForNewMessages();
 
     setWebsocketInstance(websocketService);
@@ -110,10 +120,6 @@ export default function Home() {
   };
   useEffect(() => {
     init();
-
-    return () => {
-      // websocketInstance?.sendActionResopnse({ name: "delete-thread", output: "" });
-    };
   }, []);
 
   const handleClick = async () => {
@@ -127,108 +133,103 @@ export default function Home() {
   };
 
   const handlePrompt = async (prompt: string) => {
-    // only call if no prompt is queued
-    if (!isRespondingToPrompt) {
-      setIsRespondingToPrompt(true);
-
-      refValue.current = [
-        ...messages,
-        { id: Date.now(), type: "user", createdAt: Date.now(), prompt },
-      ];
-      setMessages([
-        ...messages,
-        { id: Date.now(), type: "user", createdAt: Date.now(), prompt },
-      ]);
-      await websocketInstance?.pushMessage(prompt);
+    if (isRespondingToPrompt || isInitialising) {
+      return;
     }
+
+    // only call if no prompt is queued
+    setIsRespondingToPrompt(true);
+
+    refValue.current = [
+      ...messages,
+      { id: Date.now(), type: "user", createdAt: Date.now(), prompt },
+    ];
+    setMessages([
+      ...messages,
+      { id: Date.now(), type: "user", createdAt: Date.now(), prompt },
+    ]);
+
+    await websocketInstance?.pushMessage(prompt);
   };
 
   return (
     <ProviderTree>
-      <main className={styles.main}>
-        <div className={styles.chat}>
-          <List
-            style={{
-              height: "80vh",
-              overflow: "scroll",
-              padding: "32px",
-              borderBottom: "solid 0.5px rgb(37 35 35 / 42%)",
-            }}
-          >
-            {messages.map((_message: MessageType) => {
-              return (
-                <Message
-                  wakuInstance={websocketInstance}
-                  message={_message}
-                  key={_message.id}
-                  setIsRespondingToPrompt={setIsRespondingToPrompt}
-                />
-              );
-            })}
-            {isRespondingToPrompt && (
+      <div className="flex flex-col h-screen">
+        <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
+          {messages.map((_message: MessageType) => {
+            return (
               <Message
                 wakuInstance={websocketInstance}
-                loading
-                message={{ type: "fox" }}
+                message={_message}
+                key={_message.id}
+                setIsRespondingToPrompt={setIsRespondingToPrompt}
               />
-            )}
-          </List>
+            );
+          })}
+          {isRespondingToPrompt && (
+            <Message
+              wakuInstance={websocketInstance}
+              loading
+              message={{ type: "fox" }}
+            />
+          )}
+          <div ref={messagesEndRef} />
         </div>
-
-        <footer
-          style={{
-            width: "100%",
-            position: "absolute",
-            bottom: "12px",
-            padding: "24px",
-          }}
-        >
-          <List
-            grid={{
-              gutter: 16,
-              xs: 4,
-              sm: 4,
-              md: 4,
-              lg: 4,
-              xl: 4,
-              xxl: 4,
-            }}
-            dataSource={prompts}
-            renderItem={(prompt: string) => (
-              <List.Item>
-                <Card
-                  onClick={() => handlePrompt(prompt)}
-                  style={Object.assign(
-                    {},
-                    {
-                      cursor: "pointer",
-                      border: "solid 0.5px rgb(37 35 35 / 42%)",
-                    },
-                    (isInitialising || isRespondingToPrompt) && {
-                      color: "rgba(0, 0, 0, 0.25)",
-                      backgroundColor: "rgba(0, 0, 0, 0.04)",
-                    }
+        <div className="flex flex-col p-4 bg-gray-200 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {prompts.map((prompt) => {
+              return (
+                <button
+                  className={classnames(
+                    "p-3 flex items-center justify-center border border-blue-300 bg-blue-200 rounded-md",
+                    { "hover:bg-blue-300": !isRespondingToPrompt }
                   )}
+                  key={prompt}
+                  disabled={isInitialising || isRespondingToPrompt}
+                  onClick={() => {
+                    handlePrompt(prompt);
+                  }}
                 >
                   {prompt}
-                </Card>
-              </List.Item>
-            )}
-          />
-          <Space.Compact style={{ width: "100%" }}>
-            <Search
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between">
+            <input
+              type="text"
+              className="flex-1 p-2 rounded-md border border-gray-300 focus:outline-none"
               placeholder="What is on your mind today?"
-              enterButton="Ask Mr. Fox"
-              size="large"
-              disabled={isInitialising || isRespondingToPrompt}
               value={inputMessage}
-              loading={isRespondingToPrompt}
               onChange={(e) => setInputMessage(e.target.value)}
-              onSearch={handleClick}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter") {
+                  return;
+                }
+
+                handleClick();
+              }}
             />
-          </Space.Compact>
-        </footer>
-      </main>
+            <button
+              className={classnames(
+                "ml-4 px-4 py-2 bg-blue-500 text-white rounded-md focus:outline-none w-36 flex justify-center",
+                {
+                  "bg-blue-300": isRespondingToPrompt,
+                  "hover:bg-blue-600": !isRespondingToPrompt,
+                }
+              )}
+              onClick={handleClick}
+              disabled={isInitialising || isRespondingToPrompt}
+            >
+              {isRespondingToPrompt ? (
+                <LoadingIndicator whiteColor />
+              ) : (
+                <span>Ask Mr. Fox</span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
     </ProviderTree>
   );
 }

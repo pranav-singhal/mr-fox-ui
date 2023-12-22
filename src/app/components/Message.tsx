@@ -1,25 +1,27 @@
 "use client";
-import { Card, Divider, Avatar, Spin } from "antd";
 import Markdown from "markdown-to-jsx";
 import { ConnectKitButton } from "connectkit";
-import { useAccount, useConnect, useEnsName } from "wagmi";
-import { UserOutlined, RobotOutlined } from "@ant-design/icons";
-import { MessageType } from "../page";
 import {
   signTypedData,
   sendTransaction,
   waitForTransaction,
 } from "@wagmi/core";
-import { Button } from "../../../node_modules/antd/es/index";
 import { useState } from "react";
+import { useAccount } from "wagmi";
+import { MessageType } from "../page";
+import LoadingIndicator from "./LoadingIndicator";
+import classnames from "classnames";
 
 const ActionBody = (props: any) => {
   const { address, isConnected } = useAccount();
   const [showAction, setShowAction] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const wakuInstance = props.wakuInstance;
   const actionObject = props?.actionObject;
 
   const handleAction = async () => {
+    setIsLoading(true);
+
     if (actionObject.name === "get_user_address") {
       wakuInstance.sendActionResopnse({
         name: actionObject.response_event,
@@ -59,7 +61,9 @@ const ActionBody = (props: any) => {
         <br />
         Rest assured! I will not ask you to sign anything dangerous
         <br />
-        <ConnectKitButton />
+        <div className="pt-2">
+          <ConnectKitButton />
+        </div>
       </div>
     );
   }
@@ -74,13 +78,22 @@ const ActionBody = (props: any) => {
           click on the button below
           <br />
           {showAction && (
-            <Button
-              type="primary"
+            <button
+              className={classnames(
+                "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
+                {
+                  "bg-blue-300": isLoading,
+                  "hover:bg-blue-600": !isLoading,
+                }
+              )}
               onClick={handleAction}
-              style={{ marginTop: "12px" }}
             >
-              Send wallet address
-            </Button>
+              {isLoading ? (
+                <LoadingIndicator whiteColor />
+              ) : (
+                <span>Send Wallet Address</span>
+              )}
+            </button>
           )}
         </div>
       );
@@ -93,13 +106,22 @@ const ActionBody = (props: any) => {
           Click on the button below to open the transaction in your wallet.
           <br />
           {showAction && (
-            <Button
-              type="primary"
-              onClick={handleAction}
-              style={{ marginTop: "12px" }}
-            >
-              Sign Transaction
-            </Button>
+            <button
+            className={classnames(
+              "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
+              {
+                "bg-blue-300": isLoading,
+                "hover:bg-blue-600": !isLoading,
+              }
+            )}
+            onClick={handleAction}
+          >
+            {isLoading ? (
+              <LoadingIndicator whiteColor />
+            ) : (
+              <span>Sign Transaction</span>
+            )}
+          </button>
           )}
         </div>
       );
@@ -115,13 +137,23 @@ const ActionBody = (props: any) => {
           You can verify the swap in the wallet as well
           <br />
           {showAction && (
-            <Button
-              type="primary"
-              onClick={handleAction}
-              style={{ marginTop: "12px" }}
-            >
-              Grant approval
-            </Button>
+            <button
+            className={classnames(
+              "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
+              {
+                "bg-blue-300": isLoading,
+                "hover:bg-blue-600": !isLoading,
+              }
+            )}
+            onClick={handleAction}
+          >
+            {isLoading ? (
+              <LoadingIndicator whiteColor />
+            ) : (
+              <span>Grant approval</span>
+            )}
+          </button>
+            
           )}
         </div>
       );
@@ -143,69 +175,55 @@ const Message = (props: any) => {
     actionObject = JSON.parse(action);
   }
 
+  const getPrompt = () => {
+    if (action) {
+      return (
+        <ActionBody
+          actionObject={actionObject}
+          wakuInstance={wakuInstance}
+          setIsRespondingToPrompt={props.setIsRespondingToPrompt}
+        />
+      );
+    }
+
+    return <Markdown>{message.prompt}</Markdown>;
+  };
+
   return (
-    <Card
-      style={{
-        boxShadow: "none",
-        margin: "36px",
-        backgroundColor: "#F5F5F5",
-        borderRadius: "16px",
-      }}
-      bordered={false}
+    <div
+      className={`flex ${
+        message.type === "user" ? "justify-end" : "justify-start"
+      } items-center space-x-2 mx-2 my-3`}
     >
-      <Card.Grid
-        style={{
-          width: "25%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          boxShadow: 'unset'
-        }}
-        hoverable={false}
-      >
-        {message.type === "user" ? (
-          <Avatar
-            shape="square"
-            size={90}
-            src={
-              <img src="https://img.freepik.com/premium-vector/user-avatar-icon-flat-color-style_755164-946.jpg?w=2000" />
-            }
-          />
-        ) : (
-          <Avatar
-            shape="square"
-            size={90}
-            src={
-              <img src="/mr-fox.jpeg" />
-            }
-          />
-        )}
-      </Card.Grid>
-      <Card.Grid
-        style={{
-          width: "75%",
-          margin: "auto",
-          border: "none",
-          boxShadow: "none",
-        }}
+      {message.type !== "user" && (
+        <img
+          src="/mr-fox.jpeg"
+          alt="Avatar"
+          className="w-12 h-12 rounded-full"
+        />
+      )}
+      <div
+        className={`max-w-lg p-4 rounded-lg ${
+          message.type === "user" ? "bg-blue-500 text-white" : "bg-gray-300"
+        }`}
       >
         {props.loading ? (
-          <Spin size="large" style={{ paddingLeft: "24px" }} />
+          <div className="flex items-center gap-3">
+            <LoadingIndicator />
+            <span>Generating...</span>
+          </div>
         ) : (
-          <>
-            {message.prompt && <Markdown>{message.prompt}</Markdown>}
-
-            {actionObject?.name && (
-              <ActionBody
-                actionObject={actionObject}
-                wakuInstance={wakuInstance}
-                setIsRespondingToPrompt={props.setIsRespondingToPrompt}
-              />
-            )}
-          </>
+          getPrompt()
         )}
-      </Card.Grid>
-    </Card>
+      </div>
+      {message.type === "user" && (
+        <img
+          src="https://img.freepik.com/premium-vector/user-avatar-icon-flat-color-style_755164-946.jpg?w=2000"
+          alt="Avatar"
+          className="w-12 h-12 rounded-full"
+        />
+      )}
+    </div>
   );
 };
 
