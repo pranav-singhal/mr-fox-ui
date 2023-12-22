@@ -17,14 +17,6 @@ const INITIAL_MESSAGE = `Welcome to the world of **Web3** assistance! I'm **Mr. 
 - **Wallet Address Retrieval**: If you need it, I can fetch your wallet address.
 - **Token Approvals**: I can help obtain necessary permissions for your tokens.
 
-Here are some sample prompts to get us started:
-
-- "Get me the contract address for **DAI on Ethereum**."
-- "I want to **swap 50 LINK for ETH**."
-- "Can you **check my WMATIC balance on Polygon**?"
-- "What's **my wallet address**?"
-- "I need to **approve a token for swapping**."
-
 Whenever you're ready, just let me know how I can assist you!`;
 
 export type MessageType = {
@@ -39,9 +31,9 @@ export type MessageType = {
 
 const prompts = [
   "Who are you?",
-  "How much DAI do I have?",
-  "Swap WMATIC to WMATIC",
-  "What is my addresss",
+  "Get my DAI Balance?",
+  "Swap WMATIC to DAI",
+  "What is my addresss?",
 ];
 export default function Home() {
   const [messages, setMessages] = useState<Array<MessageType>>([]);
