@@ -186,7 +186,7 @@ const Message = (props: any) => {
       );
     }
 
-    return <Markdown>{message.prompt}</Markdown>;
+    return message.prompt && <Markdown>{message.prompt}</Markdown>;
   };
 
   return (
