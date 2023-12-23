@@ -107,21 +107,21 @@ const ActionBody = (props: any) => {
           <br />
           {showAction && (
             <button
-            className={classnames(
-              "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
-              {
-                "bg-blue-300": isLoading,
-                "hover:bg-blue-600": !isLoading,
-              }
-            )}
-            onClick={handleAction}
-          >
-            {isLoading ? (
-              <LoadingIndicator whiteColor />
-            ) : (
-              <span>Sign Transaction</span>
-            )}
-          </button>
+              className={classnames(
+                "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
+                {
+                  "bg-blue-300": isLoading,
+                  "hover:bg-blue-600": !isLoading,
+                }
+              )}
+              onClick={handleAction}
+            >
+              {isLoading ? (
+                <LoadingIndicator whiteColor />
+              ) : (
+                <span>Sign Transaction</span>
+              )}
+            </button>
           )}
         </div>
       );
@@ -138,22 +138,21 @@ const ActionBody = (props: any) => {
           <br />
           {showAction && (
             <button
-            className={classnames(
-              "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
-              {
-                "bg-blue-300": isLoading,
-                "hover:bg-blue-600": !isLoading,
-              }
-            )}
-            onClick={handleAction}
-          >
-            {isLoading ? (
-              <LoadingIndicator whiteColor />
-            ) : (
-              <span>Grant approval</span>
-            )}
-          </button>
-            
+              className={classnames(
+                "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
+                {
+                  "bg-blue-300": isLoading,
+                  "hover:bg-blue-600": !isLoading,
+                }
+              )}
+              onClick={handleAction}
+            >
+              {isLoading ? (
+                <LoadingIndicator whiteColor />
+              ) : (
+                <span>Grant approval</span>
+              )}
+            </button>
           )}
         </div>
       );
@@ -195,15 +194,15 @@ const Message = (props: any) => {
         message.type === "user" ? "justify-end" : "justify-start"
       } items-center space-x-2 mx-2 my-3`}
     >
-      {message.type !== "user" && (
-        <img
-          src="/mr-fox.jpeg"
-          alt="Avatar"
-          className="w-12 h-12 rounded-full"
-        />
-      )}
+      <img
+        src="/mr-fox.jpeg"
+        alt="Avatar"
+        className={classnames("w-12 h-12 rounded-full", {
+          invisible: message.type === "user",
+        })}
+      />
       <div
-        className={`max-w-lg p-4 rounded-lg ${
+        className={`max-w-full p-4 rounded-lg md:max-w-lg ${
           message.type === "user" ? "bg-blue-500 text-white" : "bg-gray-300"
         }`}
       >
@@ -216,13 +215,14 @@ const Message = (props: any) => {
           getPrompt()
         )}
       </div>
-      {message.type === "user" && (
-        <img
-          src="https://img.freepik.com/premium-vector/user-avatar-icon-flat-color-style_755164-946.jpg?w=2000"
-          alt="Avatar"
-          className="w-12 h-12 rounded-full"
-        />
-      )}
+
+      <img
+        src="https://img.freepik.com/premium-vector/user-avatar-icon-flat-color-style_755164-946.jpg?w=2000"
+        alt="Avatar"
+        className={classnames("w-12 h-12 rounded-full", {
+          invisible: message.type !== "user",
+        })}
+      />
     </div>
   );
 };
