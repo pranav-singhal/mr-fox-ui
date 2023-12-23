@@ -187,7 +187,7 @@ export default function Home() {
               );
             })}
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
             <input
               type="text"
               className="w-full flex-1 p-2 rounded-md border border-gray-300 focus:outline-none"
