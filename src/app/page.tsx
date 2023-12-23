@@ -168,7 +168,7 @@ export default function Home() {
           <div ref={messagesEndRef} />
         </div>
         <div className="flex flex-col p-4 bg-gray-200 gap-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-4">
             {prompts.map((prompt) => {
               return (
                 <button
@@ -187,10 +187,10 @@ export default function Home() {
               );
             })}
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <input
               type="text"
-              className="flex-1 p-2 rounded-md border border-gray-300 focus:outline-none"
+              className="w-full flex-1 p-2 rounded-md border border-gray-300 focus:outline-none"
               placeholder="What is on your mind today?"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
@@ -204,7 +204,7 @@ export default function Home() {
             />
             <button
               className={classnames(
-                "ml-4 px-4 py-2 bg-blue-500 text-white rounded-md focus:outline-none w-36 flex justify-center",
+                "px-4 py-2 bg-blue-500 text-white rounded-md focus:outline-none w-full sm:w-36 flex justify-center",
                 {
                   "bg-blue-300": isRespondingToPrompt,
                   "hover:bg-blue-600": !isRespondingToPrompt,
