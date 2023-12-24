@@ -187,7 +187,7 @@ export default function Home() {
               return (
                 <button
                   className={classnames(
-                    "p-3 flex items-center justify-center border border-blue-300 bg-blue-200 rounded-md w-1/2",
+                    "p-3 flex items-center justify-center border border-blue-300 bg-blue-200 rounded-md w-3/4 lg:w-1/2",
                     { "hover:bg-blue-300": !isRespondingToPrompt }
                   )}
                   key={prompt}
