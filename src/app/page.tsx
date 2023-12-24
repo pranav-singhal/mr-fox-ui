@@ -9,15 +9,12 @@ import WebsocketService, {
 import LoadingIndicator from "./components/LoadingIndicator";
 import classnames from "classnames";
 
-const INITIAL_MESSAGE = `Welcome to the world of **Web3** assistance! I'm **Mr. Fox**, here to help you with a variety of on-chain transactions. Here's a succinct introduction to what I can do for you:
+const INITIAL_MESSAGE = `Welcome to the world of **Web3** assistance! I'm **Mr. Fox**, here to help you with a variety of on-chain transactions.
 
-- **Retrieve Token Information**: I can find details for cryptocurrencies, such as contract addresses.
-- **Swap Tokens**: I'll assist in exchanging one token for another and provide swap quotes.
-- **Check Balances**: I can verify your token balances on supported blockchains.
-- **Wallet Address Retrieval**: If you need it, I can fetch your wallet address.
-- **Token Approvals**: I can help obtain necessary permissions for your tokens.
+Whenever you're ready, just let me know how I can assist you!
 
-Whenever you're ready, just let me know how I can assist you!`;
+Or, you can start by selecting from one of the options below.
+`;
 
 export type MessageType = {
   id: number;
@@ -49,7 +46,7 @@ export default function Home() {
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -141,13 +138,30 @@ export default function Home() {
       { id: Date.now(), type: "user", createdAt: Date.now(), prompt },
     ]);
 
-    await websocketInstance?.pushMessage(prompt);
+    // await websocketInstance?.pushMessage(prompt);
   };
 
   return (
     <ProviderTree>
       <div className="flex flex-col h-screen">
-        <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
+        <div className="flex px-6 py-4 bg-blue-600 text-white items-center gap-8">
+          <img
+            src="/mr-fox.jpeg"
+            alt="Mr. Fox"
+            className="w-20 h-20 rounded-full"
+          />
+          <div className="flex font-brand flex-col gap-2">
+            <div className="text-3xl font-semibold">Mr. Fox</div>
+            <div className="text-md md:text-lg">
+              Last web3 assistant you will ever need
+            </div>
+          </div>
+        </div>
+        <div
+          className={classnames("overflow-y-auto bg-gray-100 p-4", {
+            "flex-1": messages.length > 1,
+          })}
+        >
           {messages.map((_message: MessageType) => {
             return (
               <Message
@@ -167,13 +181,13 @@ export default function Home() {
           )}
           <div ref={messagesEndRef} />
         </div>
-        <div className="flex flex-col p-4 bg-gray-200 gap-4">
-          <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {prompts.map((prompt) => {
+        {messages.length <= 1 && (
+          <div className="flex flex-col flex-1 bg-gray-100 justify-center items-center gap-4">
+            {messages.length === 1 && prompts.map((prompt) => {
               return (
                 <button
                   className={classnames(
-                    "p-1 lg:p-3 flex items-center justify-center border border-blue-300 bg-blue-200 rounded-md",
+                    "p-3 flex items-center justify-center border border-blue-300 bg-blue-200 rounded-md w-1/2",
                     { "hover:bg-blue-300": !isRespondingToPrompt }
                   )}
                   key={prompt}
@@ -187,6 +201,8 @@ export default function Home() {
               );
             })}
           </div>
+        )}
+        <div className="flex flex-col p-4 bg-gray-200 gap-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
             <input
               type="text"
