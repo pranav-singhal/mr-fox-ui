@@ -9,11 +9,11 @@ import WebsocketService, {
 import LoadingIndicator from "./components/LoadingIndicator";
 import classnames from "classnames";
 
-const INITIAL_MESSAGE = `Welcome to the world of **Web3** assistance! I'm **Mr. Fox**, here to help you with a variety of on-chain transactions.
+const INITIAL_MESSAGE = `Hi! I'm **Mr. Fox**, here to help you with a variety of on-chain transactions.
 
 Whenever you're ready, just let me know how I can assist you!
 
-Or, you can start by selecting from one of the options below.
+Or, you can start by selecting from one of the prompts below.
 `;
 
 export type MessageType = {
@@ -27,10 +27,10 @@ export type MessageType = {
 };
 
 const prompts = [
-  "Who are you?",
-  "Get my DAI Balance?",
-  "Swap WMATIC to DAI",
-  "What is my addresss?",
+  "What can you do?",
+  "How much USDT do I have?",
+  "I want to swap my USDT for LINK",
+  "What is the value of my MATIC in USDT?",
 ];
 export default function Home() {
   const [messages, setMessages] = useState<Array<MessageType>>([]);
