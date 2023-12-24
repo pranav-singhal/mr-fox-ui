@@ -138,7 +138,7 @@ export default function Home() {
       { id: Date.now(), type: "user", createdAt: Date.now(), prompt },
     ]);
 
-    // await websocketInstance?.pushMessage(prompt);
+    await websocketInstance?.pushMessage(prompt);
   };
 
   return (
