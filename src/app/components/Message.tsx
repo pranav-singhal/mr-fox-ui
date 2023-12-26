@@ -2,18 +2,19 @@
 import Markdown from "markdown-to-jsx";
 import { ConnectKitButton } from "connectkit";
 import {
-  signTypedData,
   sendTransaction,
   waitForTransaction,
 } from "@wagmi/core";
 import { useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { MessageType } from "../page";
 import LoadingIndicator from "./LoadingIndicator";
 import classnames from "classnames";
+import { safeSignTypedData } from "../utils/web3Utils";
 
 const ActionBody = (props: any) => {
   const { address, isConnected } = useAccount();
+  const  chainId = useChainId();
   const [showAction, setShowAction] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const wakuInstance = props.wakuInstance;
@@ -31,7 +32,7 @@ const ActionBody = (props: any) => {
 
     if (actionObject.name === "get_swap_signature") {
       try {
-        const signature = await signTypedData(actionObject?.args?.typedData);
+        const signature = await safeSignTypedData(actionObject?.args?.typedData, chainId);
         wakuInstance.sendActionResopnse({
           name: actionObject.response_event,
           output: { signature },
