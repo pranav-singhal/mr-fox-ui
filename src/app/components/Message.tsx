@@ -30,20 +30,34 @@ const ActionBody = (props: any) => {
     }
 
     if (actionObject.name === "get_swap_signature") {
-      const signature = await signTypedData(actionObject?.args?.typedData);
-      wakuInstance.sendActionResopnse({
-        name: actionObject.response_event,
-        output: { signature },
-      });
+      try {
+        const signature = await signTypedData(actionObject?.args?.typedData);
+        wakuInstance.sendActionResopnse({
+          name: actionObject.response_event,
+          output: { signature },
+        });
+      } catch (error: any) {
+        wakuInstance.sendActionResopnse({
+          name: actionObject.response_event,
+          output: { error: error.details },
+        });
+      }
     }
 
     if (actionObject.name === "get_approval_for_token") {
-      const { hash } = await sendTransaction(actionObject?.args?.calldata);
-      const data = await waitForTransaction({ hash });
-      wakuInstance.sendActionResopnse({
-        name: actionObject.response_event,
-        output: { success: true, message: "approval granted" },
-      });
+      try {
+        const { hash } = await sendTransaction(actionObject?.args?.calldata);
+        await waitForTransaction({ hash });
+        wakuInstance.sendActionResopnse({
+          name: actionObject.response_event,
+          output: { success: true, message: "approval granted" },
+        });
+      } catch (error: any) {
+        wakuInstance.sendActionResopnse({
+          name: actionObject.response_event,
+          output: { error: error.details },
+        });
+      }
     }
 
     props.setIsRespondingToPrompt(true);
@@ -205,7 +219,9 @@ const Message = (props: any) => {
             alt="Avatar"
             className="w-6 h-6 rounded-full"
           />
-          <span className="font-semibold">{message.type === "user" ? "You" : "Mr Fox"}</span>
+          <span className="font-semibold">
+            {message.type === "user" ? "You" : "Mr Fox"}
+          </span>
         </div>
         <div>
           {props.loading ? (
