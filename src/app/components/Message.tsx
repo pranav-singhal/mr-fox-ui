@@ -4,6 +4,8 @@ import { ConnectKitButton } from "connectkit";
 import {
   sendTransaction,
   waitForTransaction,
+  switchNetwork,
+  prepareSendTransaction,
 } from "@wagmi/core";
 import { useState } from "react";
 import { useAccount, useChainId } from "wagmi";
@@ -11,10 +13,11 @@ import { MessageType } from "../page";
 import LoadingIndicator from "./LoadingIndicator";
 import classnames from "classnames";
 import { safeSignTypedData } from "../utils/web3Utils";
+import { parseEther } from "viem";
 
 const ActionBody = (props: any) => {
   const { address, isConnected } = useAccount();
-  const  chainId = useChainId();
+  const chainId = useChainId();
   const [showAction, setShowAction] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const wakuInstance = props.wakuInstance;
@@ -32,7 +35,10 @@ const ActionBody = (props: any) => {
 
     if (actionObject.name === "get_swap_signature") {
       try {
-        const signature = await safeSignTypedData(actionObject?.args?.typedData, chainId);
+        const signature = await safeSignTypedData(
+          actionObject?.args?.typedData,
+          chainId
+        );
         wakuInstance.sendActionResopnse({
           name: actionObject.response_event,
           output: { signature },
@@ -54,6 +60,42 @@ const ActionBody = (props: any) => {
           output: { success: true, message: "approval granted" },
         });
       } catch (error: any) {
+        wakuInstance.sendActionResopnse({
+          name: actionObject.response_event,
+          output: { error: error.details },
+        });
+      }
+    }
+
+    if (actionObject.name === "send_token_transaction") {
+      const requiredChainId = actionObject?.args?.chainId;
+      const transactionInformation = actionObject?.args?.transaction;
+
+      // Since message is received from backend in a stringified format,
+      // and js does not know how to stringify a BigInt, hence the parseEther
+      // is happening here instead of backend.
+      if (transactionInformation.value) {
+        transactionInformation.value = parseEther(transactionInformation.value.toString());
+      }
+
+      try {
+        if (requiredChainId !== chainId) {
+          await switchNetwork({ chainId: requiredChainId });
+        }
+
+        const transaction = await prepareSendTransaction(transactionInformation);
+
+        const { hash } = await sendTransaction(transaction);
+        await waitForTransaction({ hash });
+        wakuInstance.sendActionResopnse({
+          name: actionObject.response_event,
+          output: {
+            success: true,
+            message: "transaction completed, and funds transferred",
+          },
+        });
+      } catch (error: any) {
+        console.log(error);
         wakuInstance.sendActionResopnse({
           name: actionObject.response_event,
           output: { error: error.details },
@@ -140,7 +182,6 @@ const ActionBody = (props: any) => {
           )}
         </div>
       );
-
     case "get_approval_for_token":
       return (
         <div>
@@ -171,7 +212,36 @@ const ActionBody = (props: any) => {
           )}
         </div>
       );
-
+    case "send_token_transaction":
+      return (
+        <div>
+          In order to initiate transfer of funds to the provided address, you need to sign a transaction.
+          <br />
+          Click on the button below to open you wallet.
+          <br />
+          You can verify the tranfer address, and amount in your wallet as well.
+          <br />
+          {showAction && (
+            <button
+              className={classnames(
+                "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
+                {
+                  "bg-blue-300": isLoading,
+                  "hover:bg-blue-600": !isLoading,
+                }
+              )}
+              onClick={handleAction}
+            >
+              {isLoading ? (
+                <LoadingIndicator whiteColor />
+              ) : (
+                <span>Initiate Transfer</span>
+              )}
+            </button>
+          )}
+        </div>
+      );
+              
     default:
       return (
         <div> This looks like a weird transaction. Let me check on this!</div>
