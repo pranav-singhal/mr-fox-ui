@@ -1,122 +1,22 @@
 "use client";
 import Markdown from "markdown-to-jsx";
 import { ConnectKitButton } from "connectkit";
-import {
-  sendTransaction,
-  waitForTransaction,
-  switchNetwork,
-  prepareSendTransaction,
-} from "@wagmi/core";
-import { useState } from "react";
-import { useAccount, useChainId } from "wagmi";
+import React from "react";
+import { useAccount } from "wagmi";
 import { MessageType } from "../page";
 import LoadingIndicator from "./LoadingIndicator";
-import classnames from "classnames";
-import { safeSignTypedData } from "../utils/web3Utils";
-import { parseEther } from "viem";
+import MessageActions, { Actions } from "./MessageActions";
+
+interface Action {
+  name: Actions;
+  response_event: string;
+  args: any;
+}
 
 const ActionBody = (props: any) => {
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  const [showAction, setShowAction] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isConnected } = useAccount();
   const wakuInstance = props.wakuInstance;
-  const actionObject = props?.actionObject;
-
-  const handleAction = async () => {
-    setIsLoading(true);
-
-    if (actionObject.name === "get_user_address") {
-      wakuInstance.sendActionResopnse({
-        name: actionObject.response_event,
-        output: address,
-      });
-    }
-
-    if (actionObject.name === "sign_swap_transaction") {
-      const requiredChainId = actionObject?.args?.chainId;
-      const transactionInformation = actionObject?.args?.calldata;
-
-      try {
-        if (requiredChainId !== chainId) {
-          await switchNetwork({ chainId: requiredChainId });
-        }
-
-        const transaction = await prepareSendTransaction(transactionInformation);
-
-        const { hash } = await sendTransaction(transaction);
-        await waitForTransaction({ hash });
-        wakuInstance.sendActionResopnse({
-          name: actionObject.response_event,
-          output: {
-            success: true,
-            message: "swap completed",
-          },
-        });
-      } catch (error: any) {
-        console.log(error);
-        wakuInstance.sendActionResopnse({
-          name: actionObject.response_event,
-          output: { error: error.details },
-        });
-      }
-    }
-
-    if (actionObject.name === "get_approval_for_token") {
-      try {
-        const { hash } = await sendTransaction(actionObject?.args?.calldata);
-        await waitForTransaction({ hash });
-        wakuInstance.sendActionResopnse({
-          name: actionObject.response_event,
-          output: { success: true, message: "approval granted" },
-        });
-      } catch (error: any) {
-        wakuInstance.sendActionResopnse({
-          name: actionObject.response_event,
-          output: { error: error.details },
-        });
-      }
-    }
-
-    if (actionObject.name === "send_token_transaction") {
-      const requiredChainId = actionObject?.args?.chainId;
-      const transactionInformation = actionObject?.args?.transaction;
-
-      // Since message is received from backend in a stringified format,
-      // and js does not know how to stringify a BigInt, hence the parseEther
-      // is happening here instead of backend.
-      if (transactionInformation.value) {
-        transactionInformation.value = parseEther(transactionInformation.value.toString());
-      }
-
-      try {
-        if (requiredChainId !== chainId) {
-          await switchNetwork({ chainId: requiredChainId });
-        }
-
-        const transaction = await prepareSendTransaction(transactionInformation);
-
-        const { hash } = await sendTransaction(transaction);
-        await waitForTransaction({ hash });
-        wakuInstance.sendActionResopnse({
-          name: actionObject.response_event,
-          output: {
-            success: true,
-            message: "transaction completed, and funds transferred",
-          },
-        });
-      } catch (error: any) {
-        console.log(error);
-        wakuInstance.sendActionResopnse({
-          name: actionObject.response_event,
-          output: { error: error.details },
-        });
-      }
-    }
-
-    props.setIsRespondingToPrompt(true);
-    setShowAction(false);
-  };
+  const actionObject: Action = props?.actionObject;
 
   if (!actionObject) {
     return null;
@@ -136,128 +36,22 @@ const ActionBody = (props: any) => {
     );
   }
 
-  switch (actionObject?.name) {
-    case "get_user_address":
-      return (
-        <div>
-          Before I can proceed, I need your address.
-          <br />
-          Since you have already connected your wallet, all you need to do is
-          click on the button below
-          <br />
-          {showAction && (
-            <button
-              className={classnames(
-                "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
-                {
-                  "bg-blue-300": isLoading,
-                  "hover:bg-blue-600": !isLoading,
-                }
-              )}
-              onClick={handleAction}
-            >
-              {isLoading ? (
-                <LoadingIndicator whiteColor />
-              ) : (
-                <span>Send Wallet Address</span>
-              )}
-            </button>
-          )}
-        </div>
-      );
-    case "sign_swap_transaction":
-      return (
-        <div>
-          In order to make this swap, I will need you to send a transaction for
-          me.
-          <br />
-          Click on the button below to open the transaction in your wallet.
-          <br />
-          {showAction && (
-            <button
-              className={classnames(
-                "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
-                {
-                  "bg-blue-300": isLoading,
-                  "hover:bg-blue-600": !isLoading,
-                }
-              )}
-              onClick={handleAction}
-            >
-              {isLoading ? (
-                <LoadingIndicator whiteColor />
-              ) : (
-                <span>Send Transaction</span>
-              )}
-            </button>
-          )}
-        </div>
-      );
-    case "get_approval_for_token":
-      return (
-        <div>
-          In order to execute this swap, you will need to grant me approval.
-          <br />
-          Click on the button below to open the approval transaction in the
-          wallet.
-          <br />
-          You can verify the swap in the wallet as well
-          <br />
-          {showAction && (
-            <button
-              className={classnames(
-                "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
-                {
-                  "bg-blue-300": isLoading,
-                  "hover:bg-blue-600": !isLoading,
-                }
-              )}
-              onClick={handleAction}
-            >
-              {isLoading ? (
-                <LoadingIndicator whiteColor />
-              ) : (
-                <span>Grant approval</span>
-              )}
-            </button>
-          )}
-        </div>
-      );
-    case "send_token_transaction":
-      return (
-        <div>
-          In order to initiate transfer of funds to the provided address, you need to sign a transaction.
-          <br />
-          Click on the button below to open you wallet.
-          <br />
-          You can verify the tranfer address, and amount in your wallet as well.
-          <br />
-          {showAction && (
-            <button
-              className={classnames(
-                "p-3 mt-3 bg-blue-500 text-white rounded-md focus:outline-none w-56 flex justify-center",
-                {
-                  "bg-blue-300": isLoading,
-                  "hover:bg-blue-600": !isLoading,
-                }
-              )}
-              onClick={handleAction}
-            >
-              {isLoading ? (
-                <LoadingIndicator whiteColor />
-              ) : (
-                <span>Initiate Transfer</span>
-              )}
-            </button>
-          )}
-        </div>
-      );
-              
-    default:
-      return (
-        <div> This looks like a weird transaction. Let me check on this!</div>
-      );
+  const MessageAction = MessageActions[actionObject.name];
+
+  if (!MessageAction) {
+    return (
+      <div> This looks like a weird transaction. Let me check on this!</div>
+    );
   }
+
+  return (
+    <MessageAction
+      websocketInstance={wakuInstance}
+      response_event={actionObject.response_event}
+      args={actionObject.args}
+      onCompleted={() => props.setIsRespondingToPrompt(true)}
+    />
+  );
 };
 
 const Message = (props: any) => {
