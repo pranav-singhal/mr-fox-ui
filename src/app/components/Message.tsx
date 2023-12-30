@@ -33,17 +33,28 @@ const ActionBody = (props: any) => {
       });
     }
 
-    if (actionObject.name === "get_swap_signature") {
+    if (actionObject.name === "sign_swap_transaction") {
+      const requiredChainId = actionObject?.args?.chainId;
+      const transactionInformation = actionObject?.args?.calldata;
+
       try {
-        const signature = await safeSignTypedData(
-          actionObject?.args?.typedData,
-          chainId
-        );
+        if (requiredChainId !== chainId) {
+          await switchNetwork({ chainId: requiredChainId });
+        }
+
+        const transaction = await prepareSendTransaction(transactionInformation);
+
+        const { hash } = await sendTransaction(transaction);
+        await waitForTransaction({ hash });
         wakuInstance.sendActionResopnse({
           name: actionObject.response_event,
-          output: { signature },
+          output: {
+            success: true,
+            message: "swap completed",
+          },
         });
       } catch (error: any) {
+        console.log(error);
         wakuInstance.sendActionResopnse({
           name: actionObject.response_event,
           output: { error: error.details },
@@ -154,10 +165,10 @@ const ActionBody = (props: any) => {
           )}
         </div>
       );
-    case "get_swap_signature":
+    case "sign_swap_transaction":
       return (
         <div>
-          In order to make this swap, I will need you to sign a transaction for
+          In order to make this swap, I will need you to send a transaction for
           me.
           <br />
           Click on the button below to open the transaction in your wallet.
@@ -176,7 +187,7 @@ const ActionBody = (props: any) => {
               {isLoading ? (
                 <LoadingIndicator whiteColor />
               ) : (
-                <span>Sign Transaction</span>
+                <span>Send Transaction</span>
               )}
             </button>
           )}
