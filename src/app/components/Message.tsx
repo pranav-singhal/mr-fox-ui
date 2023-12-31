@@ -12,11 +12,6 @@ interface Action {
   response_event: string;
   args: any;
 }
-//     case "get_chart_data":
-// const data = actionObject?.args?.data;
-// return (
-//   data? <TotalValueChart data={data} />: <div>looks like I was not able to analyse your portfolio. Please try again</div>
-// );
 
 const ActionBody = (props: any) => {
   const { isConnected } = useAccount();
