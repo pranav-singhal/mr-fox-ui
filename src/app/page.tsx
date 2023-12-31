@@ -16,6 +16,12 @@ Whenever you're ready, just let me know how I can assist you!
 Or, you can start by selecting from one of the prompts below.
 `;
 
+// These are special actions whose response from LLM is delayed.
+// When they are returned, the thread run is not yet completed.
+// So we do not need to set the loading false for them.
+// a follow up message will be returned which will set the loading indicator to false for these events
+const NON_INTENT_ACTIONS = ['get_chart_data'];
+
 export type MessageType = {
   id: number;
   type: string; // user | agent
@@ -63,7 +69,11 @@ export default function Home() {
     setWebsocketInstance(websocketService);
 
     websocketService.on(MESSAGE_RECEIVED, (event) => {
-      setIsRespondingToPrompt(false);
+
+      if (!(event?.action && NON_INTENT_ACTIONS.includes(JSON.parse(event?.action)?.name))) {
+        setIsRespondingToPrompt(false);
+      }
+      
       console.log("message from server: ", event, messages);
 
       setMessages([

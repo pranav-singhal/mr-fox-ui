@@ -12,6 +12,11 @@ interface Action {
   response_event: string;
   args: any;
 }
+//     case "get_chart_data":
+// const data = actionObject?.args?.data;
+// return (
+//   data? <TotalValueChart data={data} />: <div>looks like I was not able to analyse your portfolio. Please try again</div>
+// );
 
 const ActionBody = (props: any) => {
   const { isConnected } = useAccount();
@@ -81,7 +86,7 @@ const Message = (props: any) => {
   return (
     <div className="flex justify-start items-center space-x-2 mx-2 my-3">
       <div
-        className={`flex flex-col gap-3 max-w-full p-4 rounded-lg md:max-w-lg ${
+        className={`flex flex-col gap-3 max-w-full p-4 rounded-lg md:max-w-lg w-full  ${
           message.type === "user" ? "bg-blue-500 text-white" : "bg-gray-300"
         }`}
       >
