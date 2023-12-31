@@ -1,18 +1,13 @@
 import React, { useState } from "react";
 import classnames from "classnames";
 import LoadingIndicator from "../LoadingIndicator";
-import { useAccount, useChainId } from "wagmi";
-import {
-  sendTransaction,
-  waitForTransaction,
-  switchNetwork,
-  prepareSendTransaction,
-} from "@wagmi/core";
+import { useAccount } from "wagmi";
 import WebsocketService from "@/app/services/WebsocketService";
 
 const GetUserAddress: React.FC<{
   websocketInstance: WebsocketService;
   response_event: string;
+  onCompleted: () => void;
 }> = (props) => {
     const { address} = useAccount();
   const [showAction, setShowAction] = useState<boolean>(true);
@@ -25,6 +20,7 @@ const GetUserAddress: React.FC<{
       output: address,
     });
     setShowAction(false);
+    props.onCompleted();
   };
 
   return (
