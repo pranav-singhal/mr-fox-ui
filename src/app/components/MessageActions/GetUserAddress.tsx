@@ -7,15 +7,18 @@ import WebsocketService from "@/app/services/WebsocketService";
 const GetUserAddress: React.FC<{
   websocketInstance: WebsocketService;
   response_event: string;
+  args: {
+    whitelistCheck?: boolean;
+  };
   onCompleted: () => void;
 }> = (props) => {
-    const { address} = useAccount();
+  const { address } = useAccount();
   const [showAction, setShowAction] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleAction = async (): Promise<void> => {
     setIsLoading(true);
-    props.websocketInstance.sendActionResopnse({
+    props.websocketInstance.sendActionResponse({
       name: props.response_event,
       output: address,
     });
@@ -25,7 +28,11 @@ const GetUserAddress: React.FC<{
 
   return (
     <div>
-      Before I can proceed, I need your address.
+      Before I can proceed, I need your address{" "}
+      {props.args.whitelistCheck
+        ? "to verify if you are whitelisted to use me"
+        : ""}
+      .
       <br />
       Since you have already connected your wallet, all you need to do is click
       on the button below

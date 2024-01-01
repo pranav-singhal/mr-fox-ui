@@ -39,12 +39,12 @@ const ApproveToken: React.FC<{
       const { hash } = await sendTransaction(transaction);
       await waitForTransaction({ hash });
 
-      props.websocketInstance.sendActionResopnse({
+      props.websocketInstance.sendActionResponse({
         name: props.response_event,
         output: { success: true, message: "approval granted" },
       });
     } catch (error: any) {
-      props.websocketInstance.sendActionResopnse({
+      props.websocketInstance.sendActionResponse({
         name: props.response_event,
         output: { error: error.details },
       });

@@ -50,7 +50,7 @@ const SendToken: React.FC<{
 
       const { hash } = await sendTransaction(transaction);
       await waitForTransaction({ hash });
-      props.websocketInstance.sendActionResopnse({
+      props.websocketInstance.sendActionResponse({
         name: props.response_event,
         output: {
           success: true,
@@ -59,7 +59,7 @@ const SendToken: React.FC<{
       });
     } catch (error: any) {
       console.log(error);
-      props.websocketInstance.sendActionResopnse({
+      props.websocketInstance.sendActionResponse({
         name: props.response_event,
         output: { error: error.details },
       });

@@ -1,4 +1,5 @@
 import EventEmitter from "events";
+import { STORAGE_KEYS, deleteItem, setItem } from "./StorageService";
 
 export const MESSAGE_RECEIVED = "message-received";
 
@@ -30,6 +31,60 @@ export default class WebsocketService extends EventEmitter {
     super();
 
     this.ws = new WebSocket("wss://api.mrfox.xyz");
+
+    this.ws.onclose = (event) => {
+      console.log("ws close event", event);
+    };
+  }
+
+  async waitForConnected() {
+    if (!this.ws) {
+      throw "Websocket instance not found.";
+    }
+
+    await new Promise((resolve) => {
+      const interval = setInterval(() => {
+        if (this.ws.readyState !== WebSocket.OPEN) {
+          return;
+        }
+
+        clearInterval(interval);
+        resolve();
+      }, 100);
+    });
+
+    // Adding an additional sleep time of half a second, so the server
+    // can warm up correctly.
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  handleInternalMessage(message) {
+    let action;
+    try {
+      action = JSON.parse(message?.action);
+    } catch (error) {
+      console.log(
+        "Error while parsing non-ui action",
+        JSON.stringify(message, null, 4)
+      );
+
+      return;
+    }
+
+    switch (action.name) {
+      case "store-blacklisted":
+        const isWhitelisted = action?.args?.isWhitelisted;
+        if (isWhitelisted) {
+          deleteItem(STORAGE_KEYS.IS_BLACKLISTED_STORAGE);
+        } else {
+          setItem(STORAGE_KEYS.IS_BLACKLISTED_STORAGE, { blacklisted: true });
+        }
+
+        return;
+
+      default:
+        return;
+    }
   }
 
   async startWatchingForNewMessages() {
@@ -44,6 +99,12 @@ export default class WebsocketService extends EventEmitter {
       }
 
       console.log("Message Received using WebSockets");
+
+      if (decryptedMessage?.nonUI) {
+        this.handleInternalMessage(decryptedMessage);
+
+        return;
+      }
 
       self.emit(MESSAGE_RECEIVED, decryptedMessage);
     };
@@ -61,11 +122,24 @@ export default class WebsocketService extends EventEmitter {
     console.log("Message Pushed via Websockets");
   }
 
-  async sendActionResopnse(response) {
+  async sendActionResponse(response) {
     const encryptedMessage = JSON.stringify({
       timestamp: Date.now(),
       sender: "app",
       response: JSON.stringify(response),
+    });
+
+    this.ws.send(encryptedMessage);
+
+    console.log("Action Response Sent");
+  }
+
+  async pushNonPrompts(action) {
+    const encryptedMessage = JSON.stringify({
+      timestamp: Date.now(),
+      sender: "app",
+      action: JSON.stringify(action),
+      nonPrompt: true,
     });
 
     this.ws.send(encryptedMessage);

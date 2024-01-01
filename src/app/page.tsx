@@ -8,6 +8,7 @@ import WebsocketService, {
 } from "./services/WebsocketService";
 import LoadingIndicator from "./components/LoadingIndicator";
 import classnames from "classnames";
+import { STORAGE_KEYS, getItem } from "./services/StorageService";
 
 const INITIAL_MESSAGE = `Hi! I'm **Mr. Fox**, here to help you with a variety of on-chain transactions.
 
@@ -20,7 +21,7 @@ Or, you can start by selecting from one of the prompts below.
 // When they are returned, the thread run is not yet completed.
 // So we do not need to set the loading false for them.
 // a follow up message will be returned which will set the loading indicator to false for these events
-const NON_INTENT_ACTIONS = ['get_chart_data'];
+const NON_INTENT_ACTIONS = ["get_chart_data"];
 
 export type MessageType = {
   id: number;
@@ -64,16 +65,32 @@ export default function Home() {
     // create waku-service instance
     let websocketService: WebsocketService = new WebsocketService();
 
+    await websocketService.waitForConnected();
+
+    const blacklistResponse: { blacklisted?: boolean } = getItem(
+      STORAGE_KEYS.IS_BLACKLISTED_STORAGE
+    );
+
+    // Pushing a message to backend, so that it can override it's max number messages
+    // such the server will respond with rate limit message even on the first message
+    if (blacklistResponse?.blacklisted) {
+      await websocketService.pushNonPrompts({ name: "override-max-messages" });
+    }
+
     await websocketService.startWatchingForNewMessages();
 
     setWebsocketInstance(websocketService);
 
     websocketService.on(MESSAGE_RECEIVED, (event) => {
-
-      if (!(event?.action && NON_INTENT_ACTIONS.includes(JSON.parse(event?.action)?.name))) {
+      if (
+        !(
+          event?.action &&
+          NON_INTENT_ACTIONS.includes(JSON.parse(event?.action)?.name)
+        )
+      ) {
         setIsRespondingToPrompt(false);
       }
-      
+
       console.log("message from server: ", event, messages);
 
       setMessages([
@@ -193,23 +210,24 @@ export default function Home() {
         </div>
         {messages.length <= 1 && (
           <div className="flex flex-col flex-1 bg-gray-100 justify-center items-center gap-4">
-            {messages.length === 1 && prompts.map((prompt) => {
-              return (
-                <button
-                  className={classnames(
-                    "p-3 flex items-center justify-center border border-blue-300 bg-blue-200 rounded-md w-3/4 lg:w-1/2",
-                    { "hover:bg-blue-300": !isRespondingToPrompt }
-                  )}
-                  key={prompt}
-                  disabled={isInitialising || isRespondingToPrompt}
-                  onClick={() => {
-                    handlePrompt(prompt);
-                  }}
-                >
-                  {prompt}
-                </button>
-              );
-            })}
+            {messages.length === 1 &&
+              prompts.map((prompt) => {
+                return (
+                  <button
+                    className={classnames(
+                      "p-3 flex items-center justify-center border border-blue-300 bg-blue-200 rounded-md w-3/4 lg:w-1/2",
+                      { "hover:bg-blue-300": !isRespondingToPrompt }
+                    )}
+                    key={prompt}
+                    disabled={isInitialising || isRespondingToPrompt}
+                    onClick={() => {
+                      handlePrompt(prompt);
+                    }}
+                  >
+                    {prompt}
+                  </button>
+                );
+              })}
           </div>
         )}
         <div className="flex flex-col p-4 bg-gray-200 gap-4">
